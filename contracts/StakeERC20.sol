@@ -12,7 +12,6 @@ contract Staking {
     IERC20 public token;
     uint256 public rewardRate;
 
-    // Struct to store user's staking data
     struct StakerData {
         uint256 totalStaked;
         uint256 lastStakedTimestamp;
@@ -35,8 +34,6 @@ contract Staking {
     function stake(uint256 amount) public {
         require(amount > 0, "Amount must be greater than 0");
         token.transferFrom(msg.sender, address(this), amount);
-
-        // Update staker's data
         StakerData storage staker = stakers[msg.sender];
         staker.reward = staker.reward.add(calculateReward(msg.sender));
         staker.totalStaked = staker.totalStaked.add(amount);
@@ -46,8 +43,6 @@ contract Staking {
     function unstake(uint256 amount) public {
         StakerData storage staker = stakers[msg.sender];
         require(staker.totalStaked >= amount, "Not enough staked tokens");
-
-        // Update staker's data
         staker.reward = staker.reward.add(calculateReward(msg.sender));
         staker.totalStaked = staker.totalStaked.sub(amount);
         staker.lastStakedTimestamp = block.timestamp;

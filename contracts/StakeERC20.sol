@@ -3,14 +3,11 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
 contract Staking {
 
-    using SafeMath for uint256;
-
-    IERC20 public token;
+    address stoken;
     uint256 public rewardRate;
+    address owner;
 
     struct StakerData {
         uint256 totalStaked;
@@ -18,22 +15,21 @@ contract Staking {
         uint256 reward;
     }
 
-    mapping(address => StakerData) public stakers;
-
-    constructor(IERC20 _token, uint256 _rewardRate) {
-        token = _token;
-        rewardRate = _rewardRate;
+    mapping(address => StakerData) stakers;
+    
+    constructor(address _stoken) {
+        stoken = _stoken;
+        owner = msg.sender;
     }
-
-    function calculateReward(address user) public view returns (uint256) {
-        StakerData storage staker = stakers[user];
+    function calculateReward(address _user) external view returns (uint256) {
+        StakerData storage staker = stakers[_user];
         uint256 stakingDuration = block.timestamp.sub(staker.lastStakedTimestamp);
         return staker.totalStaked.mul(rewardRate).mul(stakingDuration).div(100);
     }
 
     function stake(uint256 amount) public {
         require(amount > 0, "Amount must be greater than 0");
-        token.transferFrom(msg.sender, address(this), amount);
+        stoken.transferFrom(msg.sender, address(this), amount);
         StakerData storage staker = stakers[msg.sender];
         staker.reward = staker.reward.add(calculateReward(msg.sender));
         staker.totalStaked = staker.totalStaked.add(amount);
@@ -47,18 +43,18 @@ contract Staking {
         staker.totalStaked = staker.totalStaked.sub(amount);
         staker.lastStakedTimestamp = block.timestamp;
 
-        token.transfer(msg.sender, amount);
+        stoken.transfer(msg.sender, amount);
     }
 
-    function claimReward() public {
+    function claimReward() external {
+        staker.lastStakedTimestamp = block.timestamp;
         StakerData storage staker = stakers[msg.sender];
         uint256 reward = staker.reward.add(calculateReward(msg.sender));
         require(reward > 0, "No reward to claim");
-
+        stoken.transfer(msg.sender, reward);
         staker.reward = 0;
-        staker.lastStakedTimestamp = block.timestamp;
+       
 
-        token.transfer(msg.sender, reward);
     }
 
 }

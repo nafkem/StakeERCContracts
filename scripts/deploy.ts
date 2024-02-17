@@ -4,12 +4,13 @@ async function main() {
     
   const MyToken = await ethers.deployContract("MyToken"); 
   await MyToken.waitForDeployment();
-  
-  const SaveERC20 = await ethers.deployContract("SaveERC20",[MyToken.target]); 
-  await SaveERC20.waitForDeployment();
+  console.log(`MyToken  deployed to ${MyToken.target}`);
+
+  const StakeERC20 = await ethers.deployContract("StakeERC20 "); 
+  await StakeERC20.waitForDeployment();
 
   console.log(
-    `SaveERC20 contract deployed to ${SaveERC20.target, MyToken.target}`
+    `StakeERC20 contract deployed to ${StakeERC20.target}`
   );
 }
 
